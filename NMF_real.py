@@ -40,8 +40,8 @@ A = real_dataset(name)
 # rrange = np.arange(1, 20, 2)
 # k = 500
 indian_pines_endmembers = 16
-n_it = 3
-W_list, H_list, error, total_time, num_iter = nmft.r_nmf(name=name, r=indian_pines_endmembers, n_it=n_it, k=0, A=A, er_out=er_out)
+n_it = 10
+W_list, H_list, error, total_time = nmft.r_nmf(name=name, r=indian_pines_endmembers, n_it=n_it, k=0, A=A, er_out=er_out)
 # nmft.r_nmf(name=name, rrange=rrange, n_it=n_it, k=k, A=A, er_out=er_out)
 
 # r = 10
@@ -68,4 +68,5 @@ for it in range(n_it):
     print(f"\nH_{it} Dimensions: ({np.shape(H_list[it])[0]} x {np.shape(H_list[it])[1]})\n")
     print(H_list[it], "\n")
 
-print(f"\nAverage Error = {error}, Average Total Time = {total_time} s")
+print("Error for each outer iteration: ", error.tolist())
+print("Total time(in s) for each outer iteration: ", total_time.tolist())

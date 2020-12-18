@@ -91,12 +91,17 @@ def _avg_err_time_NMF(m=0, n=0, r=0, n_it=0, k=0, A=None, er_out=False):
             #     A = synthetic_data(m, n)
             # else:
             #     print("error: A, m and n = 0")
-        W_list[it], H_list[it], er[it], t_tot[it] = NMF.et_NMF(A, r, k, er_out)
-        print("W: ", W_list[it], "\n")
-        print("H: ", H_list[it], "\n")
-        print("Error: ", er[it], "\n\n")
+        else:
+            if it == 0:
+                W_list[it], H_list[it], er[it], t_tot[it] = NMF.et_NMF(A, r, k, er_out)
+            else:
+                W_list[it], H_list[it], er[it], t_tot[it] = NMF.et_NMF(A, r, k, er_out, W_prev=W_list[it-1], H_prev=H_list[it-1])
+            
+            print("W: ", W_list[it], "\n")
+            print("H: ", H_list[it], "\n")
+            print("Error: ", er[it], "\n\n")
 
-    return W_list, H_list, np.mean(er), np.mean(t_tot)
+    return W_list, H_list, er, t_tot
 
 
 # NMF for different values of r
