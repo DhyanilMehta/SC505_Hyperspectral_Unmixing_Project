@@ -3,22 +3,22 @@ import sys
 # sys.path.insert(0, '../core/')
 import NMF_tools as nmft
 import scipy.io
+import matplotlib.pyplot as plt
 
 def real_dataset(name):
     mat = scipy.io.loadmat('dataset/'+name.capitalize()+'.mat')
     data = np.asarray_chkfinite(mat[name])
-    data_matrix = np.abs(data.reshape(np.shape(data)[0] * np.shape(data)[1],
-                                      np.shape(data)[2]))
+    data_matrix = np.abs(data.reshape(data.shape[0] * data.shape[1], data.shape[2]))
     return data_matrix
 
 er_out = True
 
-# name = 'salinas'
-# A = real_dataset(name)
+name = 'salinas'
+A = real_dataset(name)
 
 # rrange = np.arange(1, 20, 2)
 # k = 500
-# salinas_endmembers = 32
+# salinas_endmembers = 16
 # n_it = 3
 # nmft.r_nmf(name=name, r=salinas_endmembers, n_it=n_it, k=0, A=A, er_out=er_out)
 # nmft.r_nmf(name=name, rrange=rrange, n_it=n_it, k=k, A=A, er_out=er_out)
@@ -34,39 +34,63 @@ er_out = True
 # nmft.run_plot('r', 'nmf_'+name)
 
 
-name = 'indian_pines'
-A = real_dataset(name)
+# name = 'indian_pines'
+# A = real_dataset(name)
 
 # rrange = np.arange(1, 20, 2)
 # k = 500
-indian_pines_endmembers = 16
-n_it = 10
-W_list, H_list, error, total_time = nmft.r_nmf(name=name, r=indian_pines_endmembers, n_it=n_it, k=0, A=A, er_out=er_out)
-# nmft.r_nmf(name=name, rrange=rrange, n_it=n_it, k=k, A=A, er_out=er_out)
-
-# r = 10
-# krange = np.asarray([10, 20, 50, 100, 200, 500, 1000])
+# indian_pines_endmembers = 16
 # n_it = 3
+# W_list, H_list, error, total_time = nmft.r_nmf(name=name, r=indian_pines_endmembers, n_it=n_it, k=0, A=A, er_out=er_out)
+# # nmft.r_nmf(name=name, rrange=rrange, n_it=n_it, k=k, A=A, er_out=er_out)
+
+# # r = 10
+# # krange = np.asarray([10, 20, 50, 100, 200, 500, 1000])
+# # n_it = 3
 # # nmft.k_nmf(name=name, r=r, n_it=n_it, krange=krange, A=A, er_out=er_out,
 # #        random_proj=False)
 # # nmft.k_nmf(name=name, r=r, n_it=n_it, krange=krange, A=A, er_out=er_out)
 
-# nmft.run_plot('k', 'nmf_'+name)
-# nmft.run_plot('r', 'nmf_'+name)
+# # nmft.run_plot('k', 'nmf_'+name)
+# # nmft.run_plot('r', 'nmf_'+name)
 
-print("Indian Pines: \n\n")
+# print("Indian Pines: \n\n")
 
-print("Original Data Cube(reshaped to 2D)(m x n x p -> m*n x p):\n")
-print(np.shape(A), "\n")
-print(A, "\n")
+# print("Original Data Cube(reshaped to 2D)(m x n x p -> m*n x p):\n")
+# print(np.shape(A), "\n")
+# print(A, "\n")
 
-print(f"\nUnmixed Matrices W and H for {n_it} outer iterations:\n")
-for it in range(n_it):
-    print(f"\nW_{it} Dimensions: ({np.shape(W_list[it])[0]} x {np.shape(W_list[it])[1]})\n")
-    print(W_list[it], "\n")
+# print(f"\nUnmixed Matrices W and H for {n_it} outer iterations:\n")
+# for it in range(n_it):
+#     print(f"\nW_{it} Dimensions: ({np.shape(W_list[it])[0]} x {np.shape(W_list[it])[1]})\n")
+#     print(W_list[it], "\n")
 
-    print(f"\nH_{it} Dimensions: ({np.shape(H_list[it])[0]} x {np.shape(H_list[it])[1]})\n")
-    print(H_list[it], "\n")
+#     print(f"\nH_{it} Dimensions: ({np.shape(H_list[it])[0]} x {np.shape(H_list[it])[1]})\n")
+#     print(H_list[it], "\n")
 
-print("Error for each outer iteration: ", error.tolist())
-print("Total time(in s) for each outer iteration: ", total_time.tolist())
+# print("Error for each outer iteration: ", error.tolist())
+# print("Total time(in s) for each outer iteration: ", total_time.tolist())
+
+indian_pines_wavelengths = np.linspace(0.4, 2.5, num=220)
+
+# Testing purposes
+data_WH = np.load("data/nmf_indian_pines_W_H.npz")
+# data_WH = np.load("data/nmf_salinas_W_H.npz")
+W_l = data_WH["W_list"]
+H_l = data_WH["H_list"]
+H_l = [(H - 1000) / 50 for H in H_l]
+# bands = np.arange(1, 221, 1).tolist()
+
+for it in range(len(H_l)):
+    plt.figure(it+1)
+    for i in range(np.shape(H_l[it])[0]):
+        plt.plot(indian_pines_wavelengths, H_l[it][i])
+# plt.show()
+
+data_r = np.load("data/nmf_indian_pines_r.npz")
+# data_r = np.load("data/nmf_salinas_r.npz")
+err = data_r["error"]
+iters = np.arange(0, 10, 1).tolist()
+plt.figure()
+plt.plot(iters, err.tolist())
+plt.show()

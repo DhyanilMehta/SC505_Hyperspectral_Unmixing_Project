@@ -97,9 +97,9 @@ def _avg_err_time_NMF(m=0, n=0, r=0, n_it=0, k=0, A=None, er_out=False):
             else:
                 W_list[it], H_list[it], er[it], t_tot[it] = NMF.et_NMF(A, r, k, er_out, W_prev=W_list[it-1], H_prev=H_list[it-1])
             
-            print("W: ", W_list[it], "\n")
-            print("H: ", H_list[it], "\n")
-            print("Error: ", er[it], "\n\n")
+            # print("W: ", W_list[it], "\n")
+            # print("H: ", H_list[it], "\n")
+            # print("Error: ", er[it], "\n\n")
 
     return W_list, H_list, er, t_tot
 

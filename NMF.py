@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.linalg as LA
 import time
 from sklearn.decomposition import non_negative_factorization, NMF
 
@@ -14,11 +13,11 @@ def et_NMF(A, r, k=0, er_out=False,W_prev=None, H_prev=None):
 	# W1, H1, _ = non_negative_factorization(Y, n_components=r)
 	t_in = time.time()
 	if W_prev is not None and H_prev is not None:
-		NMF_model = NMF(n_components=r, solver='mu', init='custom')
+		NMF_model = NMF(n_components=r, solver='mu', init='custom', max_iter=1000)
 		W = NMF_model.fit_transform(A, W=W_prev, H=H_prev)
 		H = NMF_model.components_
 	else:
-		NMF_model = NMF(n_components=r, solver='mu')
+		NMF_model = NMF(n_components=r, solver='mu', init='random', max_iter=1000)
 		W = NMF_model.fit_transform(A)
 		H = NMF_model.components_
 
