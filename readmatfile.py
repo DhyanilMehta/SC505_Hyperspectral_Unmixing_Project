@@ -1,11 +1,10 @@
 import json
 import scipy.io
 import numpy as np
-mat = scipy.io.loadmat('dataset/Indian_pines.mat')
+mat = scipy.io.loadmat('dataset/SalinasA_corrected.mat')
 ctr = 0
-for ele in mat['indian_pines']:
-    # print(ele)
-    ctr += 1
-print(ctr, len(mat['indian_pines'][0]), len(mat['indian_pines'][0][0]))
+print(mat.get('__globals__'))
 
-print(np.asarray_chkfinite(mat['indian_pines']))
+print(np.asarray_chkfinite(mat['salinasA_corrected']).shape)
+
+print(np.asarray_chkfinite(mat['salinasA_corrected']))
