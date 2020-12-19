@@ -1,41 +1,68 @@
-import numpy as np
 import os
+import time
 import matplotlib.pyplot as plt
-import NMF
+import numpy as np
+from sklearn.decomposition import NMF
 
-# Average of error and time for NMF decomposition
-def _avg_err_time_NMF(r, n_it, A=None, W_prev=None, H_prev=None, er_out=False):
-    er = np.zeros(n_it)
-    t_tot = np.zeros(n_it)
-    # t_rp = np.zeros(n_it)
-    W_list = [None] * n_it
-    H_list = [None] * n_it
+# NMF decomposition. A = WH
+def calc_NMF(A, r, W_prev=None, H_prev=None):
+	t_in = time.time()
+	if W_prev is not None and H_prev is not None:
+		NMF_model = NMF(n_components=r, solver='mu', init='custom', max_iter=1000)
+		W = NMF_model.fit_transform(A, W=W_prev, H=H_prev)
+		H = NMF_model.components_
+	else:
+		NMF_model = NMF(n_components=r, solver='mu', init='random', random_state=0, max_iter=1000)
+		W = NMF_model.fit_transform(A)
+		H = NMF_model.components_
 
-    for it in range(n_it):
-        print('it = ', it)
-        if A is None:
-            print("Error: A is None")
-        else:
-            W_list[it], H_list[it], er[it], t_tot[it] = NMF.et_NMF(A, r, er_out, W_prev=W_prev, H_prev=H_prev)
-            
-            # print("W: ", W_list[it], "\n")
-            # print("H: ", H_list[it], "\n")
-            print("Error: ", er[it], "\n\n")
-
-    return W_list, H_list, er, t_tot
+	err = NMF_model.reconstruction_err_
+	t = time.time() - t_in
+	return W, H, err, t
 
 
-# NMF for different values of r
-def r_nmf(name, r, n_it, A=None, W_prev=None, H_prev=None, er_out=False):
-    print('r = ', r)
-    W_list, H_list, error, t_tot = _avg_err_time_NMF(r, n_it, A, W_prev, H_prev, er_out)
+# Plot calculated unmixed spectral endmembers (H) and error per iteration
+def plot_NMF_data(name, endmember_names):
+    data = np.load(f"data/nmf_{name}_data.npz")
+    # W_l = data["W_list"]
+    H_l = data["H_list"]
 
-    try:
-        os.mkdir('data')
-    except OSError:
-        pass
+    H = H_l[len(H_l) - 1]
+    wavelengths = np.linspace(0.4, 2.5, num=H.shape[1])
 
-    np.savez('data/nmf_'+name+'_W_H.npz', W_list=W_list, H_list=H_list)
+    plt.figure()
+    for i in range(H_l[0].shape[0]):
+        plt.plot(wavelengths, (H_l[0][i] * 500))
+    plt.xlabel("Wavelength (in µm)")
+    plt.ylabel("Relative Spectral Response")
+    plt.legend(endmember_names, loc="best")
 
-    np.savez('data/nmf_'+name+'_r.npz', r=r, error=error, t_tot=t_tot)
-    return W_list, H_list, error, t_tot
+
+    err_data = data["error"]
+    iters = np.arange(0, len(err_data), 1).tolist()
+    plt.figure()
+    plt.plot(iters, err_data.tolist())
+    plt.xlabel("Iterations (per iteration 1000 inner iterations)")
+    plt.ylabel("Error of 0.5*||A - WH||_Fro^2")
+    plt.show()
+
+
+# Print unmixing information
+def print_unmixing_data(name, A, W_final, H_final, error_list, total_time_list):
+    total_iters = len(error_list)
+
+    print(f"\n\n{name.capitalize()} Dataset:\n")
+
+    print(f"Original Data Cube(reshaped to 2D)(m x n x p -> m*n x p) => {A.shape}:\n")
+    print(A, "\n")
+
+    print(f"\nUnmixed Matrices W and H after {total_iters} * 1000 iterations:\n")
+
+    print(f"\nW Dimensions: ({W_final.shape[0]} x {W_final.shape[1]})\n")
+    print(W_final, "\n")
+
+    print(f"\nH Dimensions: ({H_final.shape[0]} x {H_final.shape[1]})\n")
+    print(H_final, "\n")
+
+    print("Error after each outer iteration: ", error_list)
+    print("Total time(in s) for each outer iteration: ", total_time_list)
