@@ -3,22 +3,29 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import NMF
+from sklearn.preprocessing import normalize
 
 # NMF decomposition. A = WH
-def calc_NMF(A, r, W_prev=None, H_prev=None):
-	t_in = time.time()
-	if W_prev is not None and H_prev is not None:
-		NMF_model = NMF(n_components=r, solver='mu', init='custom', max_iter=1000)
-		W = NMF_model.fit_transform(A, W=W_prev, H=H_prev)
-		H = NMF_model.components_
-	else:
-		NMF_model = NMF(n_components=r, solver='mu', init='random', random_state=0, max_iter=1000)
-		W = NMF_model.fit_transform(A)
-		H = NMF_model.components_
 
-	err = NMF_model.reconstruction_err_
-	t = time.time() - t_in
-	return W, H, err, t
+
+def calc_NMF(A, r, W_prev=None, H_prev=None):
+    t_in = time.time()
+    if W_prev is not None and H_prev is not None:
+        NMF_model = NMF(n_components=r, solver='mu',
+                        init='custom', max_iter=1000)
+        W = NMF_model.fit_transform(A, W=W_prev, H=H_prev)
+        H = NMF_model.components_
+    else:
+        NMF_model = NMF(n_components=r, solver='mu',
+                        init='random', random_state=0, max_iter=1000)
+        W = NMF_model.fit_transform(A)
+        H = NMF_model.components_
+
+    W = normalize(W, norm='l2', axis=0)
+    H = normalize(H, norm='l2', axis=1)
+    err = NMF_model.reconstruction_err_
+    t = time.time() - t_in
+    return W, H, err, t
 
 
 # Plot calculated unmixed spectral endmembers (H) and error per iteration
@@ -31,12 +38,11 @@ def plot_NMF_data(name, endmember_names):
     wavelengths = np.linspace(0.4, 2.5, num=H.shape[1])
 
     plt.figure()
-    for i in range(H_l[0].shape[0]):
-        plt.plot(wavelengths, (H_l[0][i] * 500))
+    for i in range(H.shape[0]):
+        plt.plot(wavelengths, H[i])
     plt.xlabel("Wavelength (in µm)")
     plt.ylabel("Relative Spectral Response")
     plt.legend(endmember_names, loc="best")
-
 
     err_data = data["error"]
     iters = np.arange(0, len(err_data), 1).tolist()
@@ -53,10 +59,12 @@ def print_unmixing_data(name, A, W_final, H_final, error_list, total_time_list):
 
     print(f"\n\n{name.capitalize()} Dataset:\n")
 
-    print(f"Original Data Cube(reshaped to 2D)(m x n x p -> m*n x p) => {A.shape}:\n")
+    print(
+        f"Original Data Cube(reshaped to 2D)(m x n x p -> m*n x p) => {A.shape}:\n")
     print(A, "\n")
 
-    print(f"\nUnmixed Matrices W and H after {total_iters} * 1000 iterations:\n")
+    print(
+        f"\nUnmixed Matrices W and H after {total_iters} * 1000 iterations:\n")
 
     print(f"\nW Dimensions: ({W_final.shape[0]} x {W_final.shape[1]})\n")
     print(W_final, "\n")

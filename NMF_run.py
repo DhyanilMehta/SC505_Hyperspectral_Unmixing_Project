@@ -6,8 +6,12 @@ import matplotlib.pyplot as plt
 import NMF_tools as nmft
 
 def real_dataset(name):
-    mat = scipy.io.loadmat('dataset/'+name.capitalize()+'_corrected.mat')
-    data = np.asarray_chkfinite(mat[name + '_corrected'])
+    if name == "paviaU":
+        mat = scipy.io.loadmat('dataset/PaviaU.mat')
+    else:
+        mat = scipy.io.loadmat('dataset/'+name.capitalize()+'.mat')
+    
+    data = np.asarray_chkfinite(mat[name])
     data_matrix = np.abs(data.reshape(data.shape[0] * data.shape[1], data.shape[2]))
     return data_matrix
 
@@ -15,15 +19,22 @@ ip_endmember_names = ["Alfalfa", "Corn-notill", "Corn-mintill", "Corn", "Grass-p
 
 slsA_endmember_names = ["Brocoli_green_weeds_1", "Corn_senesced_green_weeds", "Lettuce_romaine_4wk", "Lettuce_romaine_5wk", "Lettuce_romaine_6wk", "Lettuce_romaine_7wk"]
 
-# name = 'salinasA'
-# slsA_endmembers = 6
+paviaU_endmember_names = ["Asphalt", "Meadows", "Gravel", "Trees", "Painted metal sheets", "Bare Soil", "Bitumen", "Self-Blocking Bricks", "Shadows"]
+
+# name = 'salinasA_corrected'
+# endmembers = 6
 # scale_factor = 100
 # endmember_names = slsA_endmember_names
 
-name = 'indian_pines'
-ip_endmembers = 16
+name = 'indian_pines_corrected'
+endmembers = 16
 scale_factor = 500
 endmember_names = ip_endmember_names
+
+# name = 'paviaU'
+# endmembers = 9
+# scale_factor = 500
+# endmember_names = paviaU_endmember_names
 
 # Extract hyperspectral data cube
 A = real_dataset(name)
@@ -37,7 +48,7 @@ total_time_list = []
 
 while True:
     n_it += 1
-    W_it, H_it, err, total_time = nmft.calc_NMF(A, ip_endmembers, W_prev=W_list[n_it - 1], H_prev=H_list[n_it - 1])
+    W_it, H_it, err, total_time = nmft.calc_NMF(A, endmembers, W_prev=W_list[n_it - 1], H_prev=H_list[n_it - 1])
     
     print("Iteration: ", n_it, "Error: ", err)
     W_list.append(W_it)
